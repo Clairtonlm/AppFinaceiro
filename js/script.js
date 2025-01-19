@@ -1,7 +1,4 @@
 // Configuração do Supabase
-const supabaseUrl = 'SUA_URL_DO_SUPABASE';
-const supabaseKey = 'SUA_CHAVE_PUBLICA_DO_SUPABASE';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Variáveis globais
 let usuarioLogado = null;
@@ -31,21 +28,14 @@ async function cadastrarUsuario(email, senha, nome, cpf) {
         return;
     }
 
-    const { user, error } = await supabase.auth.signUp({
-        email,
-        password: senha,
+    const response = await fetch('http://localhost:3000/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: senha, nome, cpf })
     });
-    if (error) {
-        exibirErro('Erro ao cadastrar: ' + error.message);
-        return;
-    }
-
-    // Salvar informações adicionais do usuário (nome e CPF)
-    const { data, error: perfilError } = await supabase
-        .from('usuarios')
-        .insert([{ id: user.id, nome, cpf }]);
-    if (perfilError) {
-        exibirErro('Erro ao salvar perfil: ' + perfilError.message);
+    const result = await response.json();
+    if (response.status !== 200) {
+        exibirErro('Erro ao cadastrar: ' + result.error);
         return;
     }
 
@@ -60,15 +50,17 @@ async function fazerLogin(email, senha) {
         return;
     }
 
-    const { user, error } = await supabase.auth.signIn({
-        email,
-        password: senha,
+    const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: senha })
     });
-    if (error) {
-        exibirErro('Erro ao fazer login: ' + error.message);
+    const result = await response.json();
+    if (response.status !== 200) {
+        exibirErro('Erro ao fazer login: ' + result.error);
         return;
     }
-    usuarioLogado = user;
+    usuarioLogado = result.user;
     window.location.href = 'principal.html';
 }
 
